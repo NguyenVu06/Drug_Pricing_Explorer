@@ -6,8 +6,6 @@ altair
 pydeck
 scipy
 scikit-learn
-sklearn
-time
 pydeck
 datetime
 country_converter
