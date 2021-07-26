@@ -1,0 +1,14 @@
+enum34
+numpy==1.16.2
+pandas==0.23.4
+seaborn
+altair
+pydeck
+scipy
+scikit-learn
+sklearn
+time
+pydeck
+datetime
+country_converter
+geopy
