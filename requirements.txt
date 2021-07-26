@@ -1,12 +1,13 @@
 enum34
-numpy==1.16.2
-pandas==0.23.4
+numpy==1.18.5
+pandas==1.0.4
 seaborn
 altair
 pydeck
 scipy
 scikit-learn
 pydeck
-datetime
 country_converter
 geopy
+matplotlib==3.2.1
+plotly==4.8.1

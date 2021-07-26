@@ -8,7 +8,6 @@ import numpy as np
 import time
 import altair as alt
 import pydeck as pdk
-from datetime import datetime
 
 from geoLookup import geoLookup as geo
 
