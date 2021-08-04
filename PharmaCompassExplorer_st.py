@@ -123,7 +123,7 @@ if chosenStats != "by year only":
             .mark_line(point=True)
             .encode(
                 x=alt.X("year_:N", title="YEAR"),
-                y=alt.Y("quantity_in_KG_sum:Q", title="Total in KG"),
+                y=alt.Y("quantity_in_KG_sum:Q", title="Total in KG per Year"),
                 color=country_col,
             )
         ).properties(title="TOTAL by Country")
@@ -143,13 +143,28 @@ if chosenStats != "by year only":
         graph_dt2 = graph_dt2.loc[countries]
         graph_dt2 = graph_dt2.reset_index()
 
+        chart = alt.Chart(graph_dt2).mark_line(point=True).encode(
+            x = alt.X('Date:N', title="Quarter"),
+            y = alt.Y('quantity_in_KG:Q', title="KG"),
+            color = (countr_sel+':N')
+        
+        ).properties(title="Total KG by Quarter by Country")
+        st.altair_chart(chart, use_container_width=True)
 
         chart = alt.Chart(graph_dt2).mark_line(point=True).encode(
             x = alt.X('Date:N', title="Quarter"),
             y = alt.Y('USD_per_KG:Q', title="USD"),
             color = (countr_sel+':N')
         
-        ).properties(title="Price per KG by Quarter by country")
+        ).properties(title="Price per KG by Quarter by Country")
+        st.altair_chart(chart, use_container_width=True)
+        
+        chart = alt.Chart(graph_dt2).mark_line(point=True).encode(
+            x = alt.X('Date:N', title="Quarter"),
+            y = alt.Y('totalValueInUsd:Q', title="USD"),
+            color = (countr_sel+':N')
+        
+        ).properties(title="Total USD by Quarter by Country")
         st.altair_chart(chart, use_container_width=True)
 
 ##### Make map####
