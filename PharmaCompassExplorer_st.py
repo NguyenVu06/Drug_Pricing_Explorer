@@ -35,7 +35,7 @@ st.header("API = " +chosenAPI)
 @st.cache
 def getAPIdf(chosenAPI_in, data_in):
     dt = data_in[data_in["API"]==chosenAPI_in]
-    #dt = dt.loc[(dt["quantity_in_KG"]>= 1)&(dt["productDescription"]=="API"), :]
+    dt = dt.loc[(dt["productDescription"]=="API"), :]
     dt.drop(dt.columns[[0,1]], axis=1, inplace =True)
     dt['customerCountry'] = dt['customerCountry'].str.upper()
     dt['supplierCountry'] = dt['supplierCountry'].str.upper()
