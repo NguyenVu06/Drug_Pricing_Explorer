@@ -18,7 +18,7 @@ st.title("API Pricing Explorer: Explore the drug prices for API all over the wor
 st.subheader("Nguyen Dao Vu")
 #%%
 # load and manipulate data
-@st.cache
+
 def loadData(name):
     data_table = pd.read_csv(name)
     return data_table
@@ -110,7 +110,7 @@ if chosenStats != "by year only":
         st.subheader('Customer Country Total Volume (KG)')
 
     countries = st.multiselect(
-        "Choose supply countries", list(set(list(map_dt[country_col].values)))
+        "Choose Countrie(s) of Interest", list(set(list(map_dt[country_col].values)))
     )
     if not countries:
         st.error("Please select at least one country.")
@@ -129,8 +129,15 @@ if chosenStats != "by year only":
         ).properties(title="TOTAL by Country")
         st.altair_chart(chart, use_container_width=True)
 
-        graph_dt2 = df_all.groupby(['Date', 'supplierCountry'])['quantity', 'totalValueInUsd', 'quantity_in_KG', 'USD_per_KG'].mean().reset_index()
-        graph_dt2 = graph_dt2.set_index('supplierCountry')
+        
+        if chosenStats == "by selling country" or chosenStats == "All":
+            countr_sel = "supplierCountry"
+        if chosenStats == "by customer country":
+            countr_sel = "customerCountry"
+            
+        graph_dt2 = df_all.groupby(['Date', countr_sel])['quantity', 'totalValueInUsd', 'quantity_in_KG', 'USD_per_KG'].mean().reset_index()
+        graph_dt2 = graph_dt2.set_index(countr_sel)
+        
 
 
         graph_dt2 = graph_dt2.loc[countries]
@@ -140,7 +147,7 @@ if chosenStats != "by year only":
         chart = alt.Chart(graph_dt2).mark_line(point=True).encode(
             x = alt.X('Date:N', title="Quarter"),
             y = alt.Y('USD_per_KG:Q', title="USD"),
-            color = 'supplierCountry:N'
+            color = (countr_sel+':N')
         
         ).properties(title="Price per KG by Quarter by country")
         st.altair_chart(chart, use_container_width=True)
@@ -268,5 +275,5 @@ if st.button("See total global export in kg"):
         # Update the heading with current date
         subheading.subheader("%s on : %s" % ("Quantity Exported in KG by Quarter", date))
 
-        time.sleep(0.5)
+        time.sleep(0.75)
 
