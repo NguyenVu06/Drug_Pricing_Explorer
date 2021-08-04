@@ -42,10 +42,10 @@ def getAPIdf(chosenAPI_in, data_in):
     return dt
 
 def getSummary(dataTable, by = "year"):
-    greater_than_1kg = dataTable["quantity_in_KG"].values >= 1
+    # greater_than_1kg = dataTable["quantity_in_KG"].values > 0
 
-    dt = dataTable.loc[greater_than_1kg, :]
-    dt = dt[dt["productDescription"]=="API"]
+    # dt = dataTable.loc[greater_than_1kg, :]
+    dt = dataTable[dataTable["productDescription"]=="API"]
 
     agg_functions = {
         'USD_per_KG': ['sum', 'mean', 'median', 'min', 'max'],
