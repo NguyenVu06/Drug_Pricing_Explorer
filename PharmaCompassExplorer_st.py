@@ -23,6 +23,7 @@ def loadData(name):
     data_table = pd.read_csv(name)
     return data_table
 
+st.write("Quick peak at the loaded raw data:")
 data = loadData("PharmaCompass_600_clean.csv")
 
 unique_apis = sorted(list(set(list(data["API"].values))))
@@ -78,12 +79,12 @@ graph_dt = df_all.groupby(['Date'])['quantity', 'totalValueInUsd',
 
 
 
-chart = alt.Chart(graph_dt).mark_line().encode(
-    x = alt.X('Date:N', title="Quarter"),
-    y = alt.Y('USD_per_KG:Q', title="USD")
-).properties(title="Price per KG by Quarter")
+# chart = alt.Chart(graph_dt).mark_line().encode(
+#     x = alt.X('Date:N', title="Quarter"),
+#     y = alt.Y('USD_per_KG:Q', title="USD")
+# ).properties(title="Price per KG by Quarter")
 
-st.altair_chart(chart, use_container_width=True)
+# st.altair_chart(chart, use_container_width=True)
 
 st.subheader("Country Type = " + chosenStats)
 if chosenStats == "All":
