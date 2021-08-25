@@ -53,7 +53,7 @@ def getAPIdf(chosenAPI_in, data_in):
         return dt[dt["quantity_in_KG"] < 0.5]
 
 
-
+@st.cache
 def pharma_compass_summary(dataTable):
     # dt = dataTable.loc[greater_than_1kg, :]
     dt = dataTable[dataTable["productDescription"]=="API"]
@@ -78,8 +78,8 @@ def getSummary(dataTable, by = "year"):
     dt = dataTable[dataTable["productDescription"]=="API"]
 
     agg_functions = {
-        'USD_per_KG': ['sum', 'mean', 'median', 'min', 'max'],
-        'quantity_in_KG': ['sum', 'mean', 'median', 'min', 'max']
+        'USD_per_KG': ['mean', 'median', 'min', 'max', 'sum'],
+        'quantity_in_KG': ['mean', 'median', 'min', 'max', 'sum', 'count']
     } 
     
     
