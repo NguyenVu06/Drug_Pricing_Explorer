@@ -23,7 +23,7 @@ def loadData(name):
     data_table = pd.read_csv(name)
     return data_table
 
-st.write("Quick peak at the loaded raw data:")
+#st.write("Quick peak at the loaded raw data:")
 data = loadData("PharmaCompass_600_clean.csv")
 
 unique_apis = sorted(list(set(list(data["API"].values))))
@@ -33,6 +33,11 @@ unique_apis = sorted(list(set(list(data["API"].values))))
 chosenAPI = st.sidebar.selectbox("Select API of Interests", unique_apis)
 st.header("API = " +chosenAPI)
 
+st.write("NOTE: API pricess differs exponentially depending on bulk vs small quantity. Please select the appropriate estimated quantity for your use.")
+scale = st.radio('Select range of API scale',('Both', 'Bulk Only(>=0.5KG)', 'Small Quantity (<0.5KG)'))
+
+
+
 @st.cache
 def getAPIdf(chosenAPI_in, data_in):
     dt = data_in[data_in["API"]==chosenAPI_in]
@@ -40,7 +45,31 @@ def getAPIdf(chosenAPI_in, data_in):
     dt.drop(dt.columns[[0,1]], axis=1, inplace =True)
     dt['customerCountry'] = dt['customerCountry'].str.upper()
     dt['supplierCountry'] = dt['supplierCountry'].str.upper()
-    return dt
+    if scale == 'Both':
+        return dt
+    elif scale =='Bulk Only(>=0.5KG)':
+        return dt[dt["quantity_in_KG"] >= 0.5]
+    else:
+        return dt[dt["quantity_in_KG"] < 0.5]
+
+
+
+def pharma_compass_summary(dataTable):
+    # dt = dataTable.loc[greater_than_1kg, :]
+    dt = dataTable[dataTable["productDescription"]=="API"]
+
+
+    pharmaCompass_functions = {
+        'USD_per_KG': ['mean', 'median'],
+        'quantity_in_KG': ['sum','count']
+    }
+    pharmaCompass_mock_table = dt.groupby([ 'supplierCountry', 'customerCountry',]).agg(pharmaCompass_functions).round(2)
+    
+    return pharmaCompass_mock_table
+
+st.dataframe(pharma_compass_summary(getAPIdf(chosenAPI, data)))
+st.caption("Overview Summary Table")
+
 
 def getSummary(dataTable, by = "year"):
     # greater_than_1kg = dataTable["quantity_in_KG"].values > 0
@@ -51,7 +80,10 @@ def getSummary(dataTable, by = "year"):
     agg_functions = {
         'USD_per_KG': ['sum', 'mean', 'median', 'min', 'max'],
         'quantity_in_KG': ['sum', 'mean', 'median', 'min', 'max']
-    }
+    } 
+    
+    
+    
     if by in "all year supplier customer ":
         if by == "all":
             resultDF = dt.groupby(['year', 'customerCountry', 'supplierCountry']).agg(agg_functions).round(2)
@@ -64,11 +96,11 @@ def getSummary(dataTable, by = "year"):
     else:
         print("by must equal one of: all, year, supplier, customer. year is the default value")
         return()
-    return(resultDF)
+    return resultDF
 
 df_all = getAPIdf(chosenAPI, data)
 #%%
-st.dataframe(df_all.head())
+#st.dataframe(df_all.head())
 
 chosenStats = st.sidebar.selectbox("Choose Summary of Statistic", ["All", "by year only", "by selling country", "by customer country"])
 
@@ -78,13 +110,13 @@ graph_dt = df_all.groupby(['Date'])['quantity', 'totalValueInUsd',
        'quantity_in_KG', 'USD_per_KG'].mean().reset_index()
 
 
+chart = alt.Chart(graph_dt).mark_line().encode(
+    x = alt.X('Date:N', title="Quarter"),
+    y = alt.Y('USD_per_KG:Q', title="USD")
+).properties(title="Price per KG by Quarter")
 
-# chart = alt.Chart(graph_dt).mark_line().encode(
-#     x = alt.X('Date:N', title="Quarter"),
-#     y = alt.Y('USD_per_KG:Q', title="USD")
-# ).properties(title="Price per KG by Quarter")
-
-# st.altair_chart(chart, use_container_width=True)
+st.altair_chart(chart, use_container_width=True)
+st.caption("Price Summary by quarters")
 
 st.subheader("Country Type = " + chosenStats)
 if chosenStats == "All":
@@ -128,7 +160,8 @@ if chosenStats != "by year only":
                 color=country_col,
             )
         ).properties(title="TOTAL by Country")
-        st.altair_chart(chart, use_container_width=True)
+        if chosenStats != "All":
+            st.altair_chart(chart, use_container_width=True)
 
         
         if chosenStats == "by selling country" or chosenStats == "All":
