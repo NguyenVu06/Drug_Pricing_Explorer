@@ -16,6 +16,7 @@ st.title("API Pricing Explorer: Explore the drug prices for API all over the wor
 
 
 st.subheader("Nguyen Dao Vu")
+st.caption("Version 2.0") # added transaction quantity filter
 #%%
 # load and manipulate data
 
@@ -33,7 +34,7 @@ unique_apis = sorted(list(set(list(data["API"].values))))
 chosenAPI = st.sidebar.selectbox("Select API of Interests", unique_apis)
 st.header("API = " +chosenAPI)
 
-st.write("NOTE: API pricess differs exponentially depending on bulk vs small quantity. Please select the appropriate estimated quantity for your use.")
+st.write("*NOTE: API pricess differs exponentially depending on bulk vs small quantity in each transaction. Please select the appropriate estimated quantity for your use.")
 scale = st.radio('Select range of API scale',('Both', 'Bulk Only(>=0.5KG)', 'Small Quantity (<0.5KG)'))
 
 
