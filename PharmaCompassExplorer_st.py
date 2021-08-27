@@ -11,6 +11,9 @@ import pydeck as pdk
 
 from geoLookup import geoLookup as geo
 
+import base64
+
+
 #%%
 st.title("API Pricing Explorer: Explore the drug prices for API all over the world:")
 
@@ -19,6 +22,29 @@ st.subheader("Nguyen Dao Vu")
 st.caption("Version 2.0") # added transaction quantity filter
 #%%
 # load and manipulate data
+
+def download_link(object_to_download, download_filename, download_link_text):
+    """
+    Generates a link to download the given object_to_download.
+    - from Chad_Mitchell (streamlit)
+    object_to_download (str, pd.DataFrame):  The object to be downloaded.
+    download_filename (str): filename and extension of file. e.g. mydata.csv, some_txt_output.txt
+    download_link_text (str): Text to display for download link.
+
+    Examples:
+    download_link(YOUR_DF, 'YOUR_DF.csv', 'Click here to download data!')
+    download_link(YOUR_STRING, 'YOUR_STRING.txt', 'Click here to download your text!')
+
+    """
+    if isinstance(object_to_download,pd.DataFrame):
+        object_to_download = object_to_download.to_csv(index=False)
+
+    # some strings <-> bytes conversions necessary here
+    b64 = base64.b64encode(object_to_download.encode("UTF-8")).decode()#encode as csv
+
+    return f'<a href="data:file/txt;base64,{b64}" download="{download_filename}">{download_link_text}</a>'
+
+
 @st.cache
 def loadData(name):
     data_table = pd.read_csv(name)
@@ -73,9 +99,12 @@ def pharma_compass_summary(dataTable):
     pharmaCompass_mock_table.rename(columns={'quantity_in_KG_count':'N_of_Transactions'}, inplace=True)
     return pharmaCompass_mock_table
 #%%
-st.dataframe(pharma_compass_summary(getAPIdf(chosenAPI, data)))
+summary_table_df = pharma_compass_summary(getAPIdf(chosenAPI, data))
+st.dataframe(summary_table_df)
 st.caption("Overview Summary Table. Click on column header to sort")
-
+if st.button('Download Summary Table as CSV'):
+    tmp_download_link = download_link(summary_table_df, '{}_SUM_DF.csv'.format(chosenAPI), 'Click here to download your data!')
+    st.markdown(tmp_download_link, unsafe_allow_html=True)
 
 def getSummary(dataTable, by = "year"):
     # greater_than_1kg = dataTable["quantity_in_KG"].values > 0
@@ -139,6 +168,10 @@ elif chosenStats == "by selling country":
 elif chosenStats == "by customer country":
     df_out = getSummary(df_all, by="customer")
 st.dataframe(df_out)
+
+if st.button('Download Summary of Statistics Table as CSV'):
+    tmp_download_link = download_link(df_out, '{}_SUMofStat_DF.csv'.format(chosenAPI), 'Click here to download your data!')
+    st.markdown(tmp_download_link, unsafe_allow_html=True)
 
 #%%
 
