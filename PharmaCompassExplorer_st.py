@@ -19,13 +19,13 @@ st.subheader("Nguyen Dao Vu")
 st.caption("Version 2.0") # added transaction quantity filter
 #%%
 # load and manipulate data
-
+@st.cache
 def loadData(name):
     data_table = pd.read_csv(name)
     return data_table
 
 #st.write("Quick peak at the loaded raw data:")
-data = loadData("PharmaCompass_600_clean.csv")
+data = loadData("new_PharmaCompass_600_clean.csv")
 
 unique_apis = sorted(list(set(list(data["API"].values))))
 
@@ -40,9 +40,12 @@ scale = st.radio('Select range of API scale',('Both', 'Bulk Only(>=0.5KG)', 'Sma
 
 
 @st.cache
+#%%
 def getAPIdf(chosenAPI_in, data_in):
     dt = data_in[data_in["API"]==chosenAPI_in]
-    dt = dt.loc[(dt["productDescription"]=="API"), :]
+    dt["productDescription"].fillna("API", inplace = True)# fill nan with API (asumption)
+    dt = dt.loc[(dt["productDescription"]=="API"), :]# get API only, remove intermediates
+    dt = dt.loc[(dt["quantity_in_KG"]>0), :]# get Data where quantity must be greater than 0
     dt.drop(dt.columns[[0,1]], axis=1, inplace =True)
     dt['customerCountry'] = dt['customerCountry'].str.upper()
     dt['supplierCountry'] = dt['supplierCountry'].str.upper()
@@ -53,7 +56,7 @@ def getAPIdf(chosenAPI_in, data_in):
     else:
         return dt[dt["quantity_in_KG"] < 0.5]
 
-
+#%%
 @st.cache
 def pharma_compass_summary(dataTable):
     # dt = dataTable.loc[greater_than_1kg, :]
@@ -61,15 +64,17 @@ def pharma_compass_summary(dataTable):
 
 
     pharmaCompass_functions = {
-        'USD_per_KG': ['mean', 'median'],
+        'totalValueInUsd': ['sum'],
         'quantity_in_KG': ['sum','count']
     }
-    pharmaCompass_mock_table = dt.groupby([ 'supplierCountry', 'customerCountry',]).agg(pharmaCompass_functions).round(2)
-    
+    pharmaCompass_mock_table = dt.groupby([ 'supplierCountry', 'customerCountry',]).agg(pharmaCompass_functions).round(2).reset_index()
+    pharmaCompass_mock_table.columns = ["_".join(i) for i in pharmaCompass_mock_table.columns]
+    pharmaCompass_mock_table["USD_per_KG"] = pharmaCompass_mock_table["totalValueInUsd_sum"]/pharmaCompass_mock_table["quantity_in_KG_sum"]
+    pharmaCompass_mock_table.rename(columns={'quantity_in_KG_count':'N_of_Transactions'}, inplace=True)
     return pharmaCompass_mock_table
-
+#%%
 st.dataframe(pharma_compass_summary(getAPIdf(chosenAPI, data)))
-st.caption("Overview Summary Table")
+st.caption("Overview Summary Table. Click on column header to sort")
 
 
 def getSummary(dataTable, by = "year"):
@@ -79,7 +84,7 @@ def getSummary(dataTable, by = "year"):
     dt = dataTable[dataTable["productDescription"]=="API"]
 
     agg_functions = {
-        'USD_per_KG': ['mean', 'median', 'min', 'max', 'sum'],
+        'totalValueInUsd': ['mean', 'median', 'min', 'max', 'sum'],
         'quantity_in_KG': ['mean', 'median', 'min', 'max', 'sum', 'count']
     } 
     
@@ -87,7 +92,7 @@ def getSummary(dataTable, by = "year"):
     
     if by in "all year supplier customer ":
         if by == "all":
-            resultDF = dt.groupby(['year', 'customerCountry', 'supplierCountry']).agg(agg_functions).round(2)
+            resultDF = dt.groupby(['year', 'supplierCountry', 'customerCountry']).agg(agg_functions).round(2)
         elif by == "supplier":
             resultDF = dt.groupby(['year', 'supplierCountry']).agg(agg_functions).round(2)
         elif by == "customer":
@@ -97,6 +102,10 @@ def getSummary(dataTable, by = "year"):
     else:
         print("by must equal one of: all, year, supplier, customer. year is the default value")
         return()
+    resultDF = resultDF.reset_index()
+    resultDF.columns = ["_".join(i) for i in resultDF.columns]
+    resultDF["USD_per_KG"] = resultDF["totalValueInUsd_sum"]/resultDF["quantity_in_KG_sum"]
+    resultDF.rename(columns={'quantity_in_KG_count':'N_of_Transactions'}, inplace=True)
     return resultDF
 
 df_all = getAPIdf(chosenAPI, data)
@@ -117,9 +126,10 @@ chart = alt.Chart(graph_dt).mark_line().encode(
 ).properties(title="Price per KG by Quarter")
 
 st.altair_chart(chart, use_container_width=True)
-st.caption("Price Summary by quarters")
+st.caption("Price Summary by quarters. Click on column header to sort")
 
 st.subheader("Country Type = " + chosenStats)
+st.write("Summary of Statistics Table:")
 if chosenStats == "All":
     df_out = getSummary(df_all, by="all")
 elif chosenStats == "by year only":
@@ -133,8 +143,8 @@ st.dataframe(df_out)
 #%%
 
 if chosenStats != "by year only":
-    map_dt = df_out.reset_index()
-    map_dt.columns = ["_".join(i) for i in map_dt.columns]
+    map_dt = df_out
+    #map_dt.columns = ["_".join(i) for i in map_dt.columns]
     country_col = "supplierCountry_"
     if chosenStats == "by selling country" or chosenStats == "All" :
         country_col = "supplierCountry_"
@@ -220,7 +230,7 @@ def getLongLat(_country_in, att):
     return cor
 #%%
 
-geo_dt = df_all.groupby(['Date', 'supplierCountry','customerCountry'])[ 'quantity', 'totalValueInUsd', 'quantity_in_KG', 'USD_per_KG'].mean().reset_index()
+geo_dt = df_all.groupby(['Date', 'supplierCountry','customerCountry'])[ 'quantity', 'totalValueInUsd', 'quantity_in_KG'].mean().reset_index()
 #%%
 getLongLat_vec = np.vectorize(getLongLat)
 
