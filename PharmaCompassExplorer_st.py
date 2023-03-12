@@ -51,7 +51,7 @@ def loadData(name):
     return data_table
 
 #st.write("Quick peak at the loaded raw data:")
-data = loadData("new_PharmaCompass_600_clean.csv")
+data = loadData("s3://streamlit-support/PharmaCompass_600_clean.csv")
 
 unique_apis = sorted(list(set(list(data["API"].values))))
 
