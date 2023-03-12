@@ -10,9 +10,5 @@ scikit-learn==0.24.2
 country_converter==0.7.3
 geopy==2.2.0
 matplotlib==3.2.1
-<<<<<<< HEAD
 plotly==4.8.1
 streamlit==1.14.0
-=======
-plotly==4.8.1
->>>>>>> 5be75ad36241035e008f4926a0003bd5e852f5f1
