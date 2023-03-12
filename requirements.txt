@@ -1,4 +1,5 @@
 enum34
+python==3.9.11
 streamlit==1.14.0
 numpy==1.18.5
 pandas==1.0.4
@@ -12,6 +13,6 @@ geopy==2.2.0
 matplotlib==3.2.1
 plotly==4.8.1
 streamlit==1.14.0
-s3fs==2023.3.0
+s3fs==2023.1.0
 boto3==1.18.3
 
