@@ -10,4 +10,4 @@ country_converter==0.7.3
 geopy==2.2.0
 matplotlib==3.2.1
 plotly==4.8.1
-streamlit==1.1.0
+streamlit==1.14.0
